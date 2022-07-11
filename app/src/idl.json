@@ -1,0 +1,198 @@
+{
+    "version": "0.1.0",
+    "name": "consola_multisig",
+    "instructions": [
+      {
+        "name": "createSmartWallet",
+        "accounts": [
+          {
+            "name": "smartWallet",
+            "isMut": true,
+            "isSigner": true
+          },
+          {
+            "name": "user",
+            "isMut": true,
+            "isSigner": true
+          },
+          {
+            "name": "systemProgram",
+            "isMut": false,
+            "isSigner": false
+          }
+        ],
+        "args": [
+          {
+            "name": "owners",
+            "type": {
+              "vec": "publicKey"
+            }
+          },
+          {
+            "name": "threshold",
+            "type": "u64"
+          }
+        ],
+        "returns": null
+      },
+      {
+        "name": "createTransaction",
+        "accounts": [
+          {
+            "name": "smartWallet",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "transaction",
+            "isMut": true,
+            "isSigner": true
+          },
+          {
+            "name": "proposer",
+            "isMut": true,
+            "isSigner": true
+          },
+          {
+            "name": "systemProgram",
+            "isMut": false,
+            "isSigner": false
+          }
+        ],
+        "args": [],
+        "returns": null
+      },
+      {
+        "name": "approve",
+        "accounts": [
+          {
+            "name": "smartWallet",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "transaction",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "owner",
+            "isMut": false,
+            "isSigner": true
+          }
+        ],
+        "args": [],
+        "returns": null
+      },
+      {
+        "name": "reject",
+        "accounts": [
+          {
+            "name": "smartWallet",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "transaction",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "owner",
+            "isMut": false,
+            "isSigner": true
+          }
+        ],
+        "args": [],
+        "returns": null
+      },
+      {
+        "name": "executeTransaction",
+        "accounts": [
+          {
+            "name": "smartWallet",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "transaction",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "owner",
+            "isMut": false,
+            "isSigner": true
+          }
+        ],
+        "args": [],
+        "returns": null
+      }
+    ],
+    "accounts": [
+      {
+        "name": "SmartWallet",
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "threshold",
+              "type": "u64"
+            },
+            {
+              "name": "owners",
+              "type": {
+                "vec": "publicKey"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "Transaction",
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "smartWallet",
+              "type": "publicKey"
+            },
+            {
+              "name": "proposer",
+              "type": "publicKey"
+            },
+            {
+              "name": "signers",
+              "type": {
+                "vec": "bool"
+              }
+            },
+            {
+              "name": "didExecute",
+              "type": "bool"
+            }
+          ]
+        }
+      }
+    ],
+    "errors": [
+      {
+        "code": 6000,
+        "name": "ForbidenOwner",
+        "msg": "The given owner is not part of this multisig."
+      },
+      {
+        "code": 6001,
+        "name": "AlreadyExecuted",
+        "msg": "The transaction has already been executed."
+      },
+      {
+        "code": 6002,
+        "name": "ThresholdNotReached",
+        "msg": "You don't have enough signatures to execute this transaction."
+      }
+    ],
+    "metadata": {
+      "address": "1ADkXRJRhpoX4GbnU9DN5c5EJGtocmEaANWn1RNQ9zK"
+    }
+  }

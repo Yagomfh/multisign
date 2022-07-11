@@ -1,0 +1,14 @@
+[features]
+seeds = false
+[programs.localnet]
+consola_multisig = "1ADkXRJRhpoX4GbnU9DN5c5EJGtocmEaANWn1RNQ9zK"
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[provider]
+cluster = "localnet"
+wallet = "/Users/yagomartinez-falerohein/.config/solana/id.json"
+
+[scripts]
+test = "yarn run mocha -t 1000000 tests/"
