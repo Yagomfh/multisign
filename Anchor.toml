@@ -1,7 +1,7 @@
 [features]
 seeds = false
 [programs.localnet]
-consola_multisig = "1ADkXRJRhpoX4GbnU9DN5c5EJGtocmEaANWn1RNQ9zK"
+consola_multisig = "6synpTG67BHwBhghPJi6FozB7VwzDQW4oFCu6J7qZXTm"
 
 [registry]
 url = "https://anchor.projectserum.com"

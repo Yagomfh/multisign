@@ -1,7 +1,8 @@
 import {
   Box, Button, FormLabel, HStack,
+  Input,
   Modal, ModalBody, ModalCloseButton, ModalContent,
-  ModalHeader, ModalOverlay, Select, VStack
+  ModalHeader, ModalOverlay, NumberInput, NumberInputField, Select, VStack
 } from "@chakra-ui/react"
 import { Form, Formik } from "formik";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -28,12 +29,18 @@ const CreateTransaction = ({ isOpen, onClose, smartWallets, fetchNewData }: IPro
           <ModalCloseButton />
           <ModalBody>
             {wallet.publicKey && <Formik
-              initialValues={{ smartWallet: '' }}
+              initialValues={{ smartWallet: '', to: '', amount: 0 }}
               onSubmit={(values) => {
-                createTransaction(wallet as unknown as Wallet, values.smartWallet, () => {
-                  onClose()
-                  fetchNewData()
-                })
+                const { smartWallet, to, amount } = values
+                createTransaction(
+                  wallet as unknown as Wallet,
+                  smartWallet,
+                  to,
+                  Number(amount),
+                  () => {
+                    onClose()
+                    fetchNewData()
+                  })
               }}
             >
               {({
@@ -49,6 +56,16 @@ const CreateTransaction = ({ isOpen, onClose, smartWallets, fetchNewData }: IPro
                       <Select placeholder='Select Smart Wallet' name={'smartWallet'} onChange={handleChange} value={values.smartWallet}>
                         {smartWallets.map((sw, idx) => <option value={sw} key={sw}>#{idx + 1} - {sw.substring(0, 30)}...</option>)}
                       </Select>
+                    </Box>
+                    <Box w={"100%"}>
+                      <FormLabel htmlFor='amount'>Amount:</FormLabel>
+                      <NumberInput>
+                        <NumberInputField id='amount' placeholder="SOLs" value={values.amount} onChange={handleChange} />
+                      </NumberInput>
+                    </Box>
+                    <Box w={"100%"}>
+                      <FormLabel htmlFor='threshold'>Transfer to:</FormLabel>
+                      <Input id='to' value={values.to} placeholder="DUkCVF6eppvk7BQzXRJFcYf1ib7NEkm1AKNzAPohHpCT" onChange={handleChange} />
                     </Box>
                     <HStack w={"100%"} justifyContent={'flex-end'} mt={4} mb={4}>
                       <Button colorScheme='red' onClick={onClose}>

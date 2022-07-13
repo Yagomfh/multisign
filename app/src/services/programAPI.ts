@@ -1,8 +1,7 @@
-import { BN, Program, ProgramAccount, Wallet, web3 } from "@project-serum/anchor";
+import { BN, Program, Wallet, web3 } from "@project-serum/anchor";
 import { getProvider } from "../utils/getProvider";
 import idl from '../idl.json';
 import { Keypair, PublicKey } from "@solana/web3.js";
-import { IdlTypes, TypeDef } from "@project-serum/anchor/dist/cjs/program/namespace/types";
 
 const programID = new PublicKey(idl.metadata.address);
 
@@ -13,7 +12,9 @@ export const fetchWallets = async (wallet: Wallet) => {
 
   try {
     /* interact with the program via rpc */
-    return program.account.smartWallet.all()
+    const smartWallets = await program.account.smartWallet.all()
+    
+    return smartWallets
   } catch (err) {
     console.log("Transaction error: ", err);
   }
@@ -77,7 +78,7 @@ export const rejectTransaction = async (wallet: Wallet, tx: string, smartWallet:
   }
 }
 
-export const executeTransaction = async (wallet: Wallet, tx: string, smartWallet: string, callBack?: () => void) => {
+export const executeTransaction = async (wallet: Wallet, tx: string, smartWallet: string, to: string, callBack?: () => void) => {
   if (!wallet) return
   const provider = await getProvider(wallet);
   const program = new Program(idl as any, programID, provider);
@@ -89,6 +90,7 @@ export const executeTransaction = async (wallet: Wallet, tx: string, smartWallet
         smartWallet: new PublicKey(smartWallet),
         transaction: new PublicKey(tx),
         owner: wallet.publicKey,
+        to: new PublicKey(to),
       }
     })
     callBack && callBack()
@@ -101,6 +103,7 @@ export const createWallet = async (wallet: Wallet, owners: string[], threshold: 
   if (!wallet) return
   const provider = await getProvider(wallet);
   const program = new Program(idl as any, programID, provider);
+  console.log(programID.toBase58())
   const smartWallet = Keypair.generate();
 
   try {
@@ -119,7 +122,7 @@ export const createWallet = async (wallet: Wallet, owners: string[], threshold: 
   }
 }
 
-export const createTransaction = async (wallet: Wallet, smartWallet: string, callBack?: () => void) => {
+export const createTransaction = async (wallet: Wallet, smartWallet: string, to: string, amount: number, callBack?: () => void) => {
   if (!wallet) return
   const provider = await getProvider(wallet);
   const program = new Program(idl as any, programID, provider);
@@ -127,7 +130,7 @@ export const createTransaction = async (wallet: Wallet, smartWallet: string, cal
 
   try {
     /* interact with the program via rpc */
-    await program.rpc.createTransaction({
+    await program.rpc.createTransaction(new PublicKey(to), new BN(amount), {
       accounts: {
         smartWallet:  new PublicKey(smartWallet),
         transaction: transaction.publicKey,

@@ -12,7 +12,27 @@ describe("consola-multisig test:", () => {
   it("Test - Smart wallet program", async () => {
     const ownerA = anchor.web3.Keypair.generate();
     const ownerB = anchor.web3.Keypair.generate();
+    const ownerC = anchor.web3.Keypair.generate();
     const smartWallet = anchor.web3.Keypair.generate();
+
+    const { connection } = provider
+    try {
+      const airdropSignature = await connection.requestAirdrop(
+        smartWallet.publicKey,
+        20000
+      );
+
+      const latestBlockHash = await connection.getLatestBlockhash();
+
+      await connection.confirmTransaction({
+        blockhash: latestBlockHash.blockhash,
+        lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+        signature: airdropSignature,
+      });
+    } catch (e) {
+      console.error(e);
+    }
+
 
     const owners = [ownerA.publicKey, ownerB.publicKey, provider.wallet.publicKey];
 
@@ -27,14 +47,16 @@ describe("consola-multisig test:", () => {
       },
       signers: [smartWallet]
     })
+    console.log(await connection.getAccountInfo(smartWallet.publicKey))
     const account = await program.account.smartWallet.fetch(smartWallet.publicKey);
     assert.ok(account.threshold.toString() == threshold.toString())
     assert.ok(JSON.stringify(account.owners) == JSON.stringify(owners))
     console.log(await program.account.smartWallet.all())
 
     const transaction = anchor.web3.Keypair.generate();
+    const amount = new anchor.BN(1);
 
-    await program.rpc.createTransaction({
+    await program.rpc.createTransaction(ownerC.publicKey, amount, {
       accounts: {
         smartWallet: smartWallet.publicKey,
         transaction: transaction.publicKey,
@@ -84,6 +106,7 @@ describe("consola-multisig test:", () => {
         smartWallet: smartWallet.publicKey,
         transaction: transaction.publicKey,
         owner: ownerB.publicKey,
+        to: ownerC.publicKey,
       },
       signers: [ownerB]
     })

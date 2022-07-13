@@ -1,5 +1,5 @@
 import { CheckCircleIcon, CloseIcon } from "@chakra-ui/icons"
-import { Avatar, Badge, Box, Button, ButtonGroup, Flex, Heading, Spacer, Text, useDisclosure, VStack } from "@chakra-ui/react"
+import { Avatar, Badge, Box, Button, ButtonGroup, Flex, Heading, Link, Spacer, Text, useDisclosure, useToast, VStack } from "@chakra-ui/react"
 import { ProgramAccount, Wallet } from "@project-serum/anchor"
 import { IdlTypes, TypeDef } from "@project-serum/anchor/dist/cjs/program/namespace/types"
 import { useWallet } from "@solana/wallet-adapter-react"
@@ -10,6 +10,7 @@ import { acceptTransaction, executeTransaction, fetchTransactions, fetchWallets,
 const Transactions = () => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const wallet = useWallet()
+  const toast = useToast()
   const [transactions, setTransactions] = useState<ProgramAccount<TypeDef<any, IdlTypes<any>>>[]>([])
   const [smartWallets, setSmartWallets] = useState<ProgramAccount<TypeDef<any, IdlTypes<any>>>[]>([])
 
@@ -21,6 +22,7 @@ const Transactions = () => {
   const fetchData = async () => {
     const txs = await fetchTransactions(wallet as unknown as Wallet)
     txs?.length && setTransactions(txs)
+    console.log(txs)
   }
 
   const getThreshold = (pubkey: string) => {
@@ -44,6 +46,7 @@ const Transactions = () => {
     return res
   }
 
+
   useEffect(() => {
     fetchSmartWallets()
     fetchData()
@@ -55,9 +58,19 @@ const Transactions = () => {
       {transactions.map((tx, i) =>
         <VStack boxShadow='md' width={"80%"} p='6' rounded='md' bg='whiteAlpha.50' key={`wart-wallet-${i}`} alignItems={'flex-start'}>
           <Flex w={"100%"} mb={4}>
-            <Heading as='h4' size='md'>
-              Transaction - {tx.publicKey.toBase58().substring(0, 30)}...
-            </Heading>
+            <Link onClick={() => {
+              navigator.clipboard.writeText(tx.publicKey.toBase58())
+              toast({
+                title: 'Copied!',
+                status: 'success',
+                duration: 1000,
+                isClosable: true,
+              })
+            }}>
+              <Heading as='h4' size='md'>
+                Transaction - {tx.publicKey.toBase58().substring(0, 30)}...
+              </Heading>
+            </Link>
             <Spacer />
             {tx.account.didExecute && <Flex alignItems={'center'}>
               <CheckCircleIcon mr={4} />
@@ -65,15 +78,18 @@ const Transactions = () => {
             </Flex>}
           </Flex>
           <Box border='1px' borderColor='gray.600' rounded='md' p={6} alignItems={'flex-start'} w={"100%"}>
-            <Text>Proposed by: {tx.account.proposer.toString().substring(0, 30)}...</Text>
+            <Text>Proposed by: {tx.account.to.toString().substring(0, 30)}...</Text>
+          </Box>
+          <Box border='1px' borderColor='gray.600' rounded='md' p={6} alignItems={'flex-start'} w={"100%"}>
+            <Text>To: {tx.account.proposer.toString()}</Text>
           </Box>
           <Flex width={"100%"}>
             <Box border='1px' borderColor='gray.600' rounded='md' p={6} alignItems={'flex-start'} w={"49%"}>
-              <Text>Total approved: {tx.account.signers.filter((s: boolean) => s == true).length}</Text>
+              <Text>Amount: {tx.account.amount.toString()} SOL</Text>
             </Box>
             <Spacer />
             <Box border='1px' borderColor='gray.600' rounded='md' p={6} alignItems={'flex-start'} w={"49%"}>
-              <Text>{`Threshold: ${getThreshold(tx.account.smartWallet.toBase58())}`}</Text>
+              <Text>{`Threshold: ${tx.account.signers.filter((s: boolean) => s == true).length}/${getThreshold(tx.account.smartWallet.toBase58())}`}</Text>
             </Box>
           </Flex>
           <Box border='1px' borderColor='gray.600' rounded='md' p={6} alignItems={'flex-start'} w={"100%"}>
@@ -105,6 +121,7 @@ const Transactions = () => {
               wallet as unknown as Wallet,
               tx.publicKey.toBase58(),
               tx.account.smartWallet.toBase58(),
+              tx.account.to.toBase58(),
               () => {
                 fetchData()
               }
